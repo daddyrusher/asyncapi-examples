@@ -1,0 +1,144 @@
+asyncapi: '2.0.0'
+info:
+  title: FDK message broker
+  version: '0.1.0'
+  description: |
+    The FDK message broker is a broker service that producers can publish messages that represents
+    events in the [FDK](https://fellesdatakatalog.brreg.no) domain.
+    ## Events supported
+    * Harvest concepts
+servers:
+  production:
+    url: broker.fellesdatakatalog.brreg.no:{port}
+    protocol: amqp
+    description: Production broker
+    protocolVersion: '0.9.1'
+    variables:
+      port:
+        description: Secure connection (TLS) is available through port 5671.
+        default: '5672'
+        enum:
+          - '5672'
+          - '5671'
+    security:
+      - bearerAuth: []
+  staging:
+    url: it1.broker.fellesdatakatalog.brreg.no:{port}
+    protocol: amqp
+    description: Staging broker
+    protocolVersion: '0.9.1'
+    variables:
+      port:
+        description: Secure connection (TLS) is available through port 5671.
+        default: '5672'
+        enum:
+          - '5672'
+          - '5671'
+    security:
+      - bearerAuth: []
+  development:
+    url: ut1.broker.fellesdatakatalog.brreg.no:{port}
+    protocol: amqp
+    description: Development broker
+    protocolVersion: '0.9.1'
+    variables:
+      port:
+        description: Secure connection (TLS) is available through port 5671.
+        default: '5672'
+        enum:
+          - '5672'
+          - '5671'
+    security:
+      - bearerAuth: []
+channels:
+  conceptAll.HarvestTrigger:
+    description: The topic on which the harvest all concepts event can be produced and consumed
+    subscribe:
+      message:
+        $ref: '#/components/messages/conceptAllHarvestTrigger-msg'
+  conceptPublisher.HarvestTrigger:
+    description: The topic on which the harvest all concepts by a given publisher event can be produced and consumed
+    subscribe:
+      message:
+        $ref: '#/components/messages/conceptPublisherHarvestTrigger-msg'
+  conceptPublisher.NewDataSource:
+    description: The topic on which a new DataSource is created after being consumed
+    subscribe:
+      message:
+        $ref: '#/components/messages/conceptPublisherNewDataSource-msg'
+  conceptCatalogue.HarvestTrigger:
+    description: The topic on which the harvest all concepts in a given catalouge event can be produced and consumed
+    subscribe:
+      message:
+        $ref: '#/components/messages/conceptCatalogueHarvestTrigger-msg'
+  concept.HarvestTrigger:
+    description: The topic on which the harvest a given concept event can be produced and consumed
+    subscribe:
+      message:
+        $ref: '#/components/messages/conceptHarvestTrigger-msg'
+components:
+  messages:
+    conceptPublisherNewDataSource-msg:
+      payload:
+        type: object
+        properties:
+          publisherId:
+            type: string
+          dataSourceType:
+            enum:
+              - SKOS-AP-NO
+              - DCAT-AP-NO
+          url:
+            type: string
+          description:
+            type: string
+        required:
+          - publisherId
+          - dataSourceType
+          - url
+
+    conceptAllHarvestTrigger-msg:
+      contentType: application/json
+      payload:
+        type: object
+    conceptPublisherHarvestTrigger-msg:
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          publisherId:
+            type: string
+        required:
+          - publisherId
+    conceptCatalogueHarvestTrigger-msg:
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          publisherId:
+            type: string
+          catalogueId:
+            type: string
+        required:
+          - publisherId
+          - catalogueId
+    conceptHarvestTrigger-msg:
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          publisherId:
+            type: string
+          catalogueId:
+            type: string
+          conceptId:
+            type: string
+        required:
+          - publisherId
+          - catalogueId
+          - conceptId
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

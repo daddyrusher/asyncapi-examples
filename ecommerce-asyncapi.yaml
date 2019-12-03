@@ -1,0 +1,154 @@
+asyncapi: 2.0.0-rc2
+info:
+  title: E-commerce system example
+  version: 0.1.0
+servers:
+  broker:
+    url: broker.example.com
+    protocol: amqp
+  http:
+    url: ecommerce.example.com
+    protocol: http
+
+channels:
+  /orders/{id}/status:
+    parameters:
+      id:
+        $ref: '#/components/parameters/id'
+    subscribe:
+      message:
+        $ref: '#/components/messages/orderStatus'
+      bindings:
+        $ref: '#/components/operationBindings/orderStatus'
+
+  /orders:
+    parameters:
+      id:
+        description: Id of the delivery
+        schema:
+          type: integer
+    publish:
+      bindings:
+        $ref: '#/components/operationBindings/orders'
+      message:
+        $ref: '#/components/messages/createOrder'
+
+components:
+  parameters:
+    id:
+      description: Id of the order
+      schema:
+        type: integer
+  messages:
+    httpUnauthorized:
+      payload:
+        type: object
+        properties:
+          status:
+            type: string
+            const: Unauthorized
+    httpUnexpectedError:
+      payload:
+        type: object
+        properties:
+          status:
+            type: string
+            const: Unexpected error
+          
+    orderStatus:
+      bindings:
+        http:
+          headers:
+            'Transfer-Encoding': 'chunked'
+            Trailer: '\r\n'
+      payload:
+        type: object
+        properties:
+          id:
+            type: integer
+          status:
+            type: string
+            enum:
+              - pending
+              - awaiting-payment
+              - awaiting-fulfillment
+              - awaiting-shipment
+              - awaiting-pickup
+              - partially-shipped
+              - completed
+              - shipped
+              - cancelled
+              - declined
+              - refunded
+              - partially-refunded
+              - disputed
+              - manual-verification-required
+          lastUpdate:
+            type: string
+            format: date-time
+
+    createOrder:
+      payload:
+        type: object
+        properties:
+          products:
+            type: array
+            description: Array of products contained in the order.
+            items:
+              type: object
+              properties:
+                productId:
+                  type: integer
+                amount:
+                  type: integer
+                unitPrice:
+                  type: number
+                  minimum: 0
+          buyer:
+            type: integer
+            description: Id of the user placing the order.
+
+    createOrderResponse:
+      payload:
+        type: object
+        properties:
+          id:
+            type: integer
+  
+  operationBindings:
+    orderStatus:
+      http:
+        GET:
+          responses:
+            '200': '$message#'
+            '401':
+              $ref: '#/components/messages/httpUnauthorized'
+            default:
+              code: 500
+              message:
+                $ref: '#/components/messages/httpUnexpectedError'
+        bindingVersion: 0.2.0 # 0.2.0 doesn't exist yet
+      amqp:
+        exchange:
+          name: public
+          type: topic
+          durable: true
+        queue:
+          durable: false
+          exclusive: true
+          bindingKey: 'orders.*.status'
+          deliveryMode: 2
+        bindingVersion: 0.2.0 # 0.2.0 doesn't exist yet
+    orders:
+      http:
+        POST:
+          requestBody: '$message#'
+          responses:
+            '200':
+              $ref: '#/components/messages/createOrderResponse'
+            '401':
+              $ref: '#/components/messages/httpUnauthorized'
+            default:
+              code: 500
+              message:
+                $ref: '#/components/messages/httpUnexpectedError'

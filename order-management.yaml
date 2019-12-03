@@ -1,0 +1,42 @@
+asyncapi: '2.0.0-rc1'
+id: 'urn:order-management'
+info:
+  title: Order Management Service
+  version: '0.1.0'
+channels:
+  orders.submitted:
+    publish:
+      message:
+        $ref: '#/components/messages/order'
+    bindings:
+      amqp:
+        type: routingKey
+        exchange:
+          name: orders
+          type: topic
+        meta:
+          version: '0.1.0'
+  orders.canceled:
+    publish:
+      message:
+        $ref: '#/components/messages/order'
+    bindings:
+      amqp:
+        type: routingKey
+        exchange:
+          name: orders
+          type: topic
+        meta:
+          version: '0.1.0'
+components:
+  messages:
+    order:
+      payload:
+        type: object
+        properties:
+          id:
+            type: string
+          status:
+            type: string
+          timestamp:
+            type: string

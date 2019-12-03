@@ -1,0 +1,150 @@
+asyncapi: '2.0.0-rc1'
+id: 'urn:com:solace:iot:notification'
+info:
+  title: IoT Notification API
+  version: '1.0.0'
+  description: |
+    A real-time, streaming analytics application detects unusual situations or deviations from expected behaviour and sends out notifications and alerts. An alert & notification application receives these events and processes them further - such as creating service tickets in a ticketing system, alert field personnel, etc.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: "broker:1883"
+    protocol: websockets
+    description: Clients subscribe via Websockets
+    baseChannel: ""
+    security:
+      - userPassword: []
+  - url: "broker:5555"
+    protocol: smf
+    description: Clients can also subscribe using native Solace protocols
+    baseChannel: ""
+    security:
+      - userPassword: []
+defaultContentType: application/json
+
+channels:
+  CREATE/notification/{region}/{location}/{production-line}/device/{deviceId}/notification:
+    description: Service Client subscribes to notification messages published for a single device
+    parameters:
+      - $ref: '#/components/parameters/region'
+      - $ref: '#/components/parameters/location'
+      - $ref: '#/components/parameters/production-line'
+      - $ref: '#/components/parameters/deviceId'
+    subscribe:
+      summary: Subscribe to notification messages
+      operationId: subscribeNotification
+      message: 
+        $ref: '#/components/messages/notificationAlertMessage'
+  CREATE/notification/{region}/{location}/{production-line}/device/{deviceId}/alert:
+    description: Service Client subscribes to alert messages published for a single device.
+    parameters:
+      - $ref: '#/components/parameters/region'
+      - $ref: '#/components/parameters/location'
+      - $ref: '#/components/parameters/production-line'
+      - $ref: '#/components/parameters/deviceId'
+    subscribe:
+      summary: Subscribe to alert messages
+      operationId: subscribeAlert
+      message: 
+        $ref: '#/components/messages/notificationAlertMessage'
+
+components:
+  messages:
+    notificationAlertMessage:
+      name: notificationAlertMessage
+      title: Notification and Alert Message
+      summary: Notification and Alert Message
+      description: "Notification and Alert Messages"
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/notificationAlertEvent"
+  
+  schemas:
+    notificationAlertEvent:
+      description: Notification and Alert Messages
+      required:
+      - originId
+      - timestamp
+      - originType
+      - messageType
+      - message
+      - description
+      - severity
+      properties:
+        originId:
+          type: string
+          description: the id of the device that caused the notification/alert. the deviceId
+          default: ''
+          example: 241d620158c3d69
+        timestamp:
+          type: string
+          description: timestamp of message sent, ISO 8601 Date and Time format
+          default: ''
+          example: 19-02-04T11:16:19.000Z
+        originType:
+          type: string
+          description: "[DEVICE] denotes the component causing the notification/alert"
+          default: ''
+          example: DEVICE
+          enum:
+            - DEVICE
+        messageType:
+          type: string
+          description: "[CAR-CRASH, DROPPED-PACKAGE] the type of the message, can be used to route processing e.g. in a service management module such as Salesforce"
+          default: ''
+          example: CAR-CRASH
+        message:
+          type: string
+          description: the title of the alert/notification
+          default: ''
+          example: crash - off track
+        description:
+          type: string
+          description: the description of the alert/notification
+          default: ''
+          example: tilt by 30% x-axis
+        severity:
+          type: string
+          description: "[NOTIFICATION, ALERT, INFO] the severity"
+          default: ''
+          example: ALERT
+          enum:
+            - NOTIFICATION
+            - ALERT
+            - INFO
+          
+    
+  parameters:
+    deviceId:
+      name: deviceId
+      description: The device id.
+      schema:
+        type: string
+        example: 29dbfgskjrty6809
+    region:
+       name: region
+       description: Region of the device
+       schema: 
+         type: string
+         example: 
+           - US
+           - EU
+    location:
+       name: location
+       description: Location of the device
+       schema: 
+         type: string
+         example: 
+           - Boeblingen
+           - Sindelfingen
+    production-line: 
+      name: production-line
+      description: The production line the device is located in 
+      schema:
+        type: string
+        example: "Widget Maker Line"
+  securitySchemes:
+    userPassword: 
+      type: userPassword
+      description: User name password authentication

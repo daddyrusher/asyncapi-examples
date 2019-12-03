@@ -1,0 +1,31 @@
+asyncapi: '2.0.0-rc1'
+id: 'urn:payment-processing'
+info:
+  title: Payment processing application
+  version: '0.1.0'
+servers:
+  - url: localhost:4222
+    protocol: nats
+    description: Nats broker
+channels:
+  orders:
+    subscribe:
+      message:
+        $ref: '#/components/messages/order'
+  orders_paid:
+    publish:
+      message:
+        $ref: '#/components/messages/order'
+        # TODO: Can we add an extra field to a new message type in components?
+components:
+  messages:
+    order:
+      payload:
+        type: object
+        properties:
+          id:
+            type: string
+          amount:
+            type: number
+          comment:
+            type: string

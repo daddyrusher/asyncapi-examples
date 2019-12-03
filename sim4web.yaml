@@ -1,0 +1,81 @@
+asyncapi: 2.0.0
+info:
+  title: Sim4Web application
+  version: 0.0.0
+servers:
+  development:
+    url: 172.0.0.1
+    protocol: ws
+    description: S4L Server
+channels:
+  socket.io:
+    ##
+    # Defined from the perspective of the client.
+    ##
+    subscribe:
+      summary: List of server messages
+      message:
+        oneOf:
+          - $ref: '#/components/messages/Tools'
+          - $ref: '#/components/messages/Actions'
+          - $ref: '#/components/messages/Options'
+          - $ref: '#/components/messages/Properties'
+          - $ref: '#/components/messages/Render'
+    publish:
+      summary: List of client messages
+      message:
+        oneOf:
+          - $ref: '#/components/messages/ToolSelect'
+          - $ref: '#/components/messages/ActionSelect'
+          - $ref: '#/components/messages/OptionChange'
+          - $ref: '#/components/messages/PropertyChange'
+          - $ref: '#/components/messages/ModelSelect'
+          - $ref: '#/components/messages/Input'
+components:
+  messages:
+    # Server
+    Tools:
+      name: Tools
+      summary: Updates the list of available tools
+      payload:
+        type: object
+        required:
+          - tools
+        properties:
+          tools:
+            type: array
+            items:
+              anyOf:
+                - $ref: '#/components/schemas/Tool'
+                - $ref: '#/components/schemas/ToolCategory'
+    # Client
+    ToolSelect:
+      name: ToolSelect
+  schemas:
+    Tool:
+      type: object
+      required:
+        - id
+        - label
+        - tooltip
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        tooltip:
+          type: string
+    ToolCategory:
+      type: object
+      required:
+        - name
+        - tools
+      properties:
+        name:
+          type: string
+        tools:
+          type: array
+          items:
+            anyOf:
+              - $ref: '#/components/schemas/Tool'
+              - $ref: '#/components/schemas/ToolCategory'

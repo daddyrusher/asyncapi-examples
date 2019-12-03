@@ -1,0 +1,106 @@
+---
+components:
+  schemas:
+    Bus Geo Location:
+      $schema: "http://json-schema.org/draft-07/schema#"
+      description: "Schema describing Buses Geolocation in time and current status"
+      type: "object"
+      title: "The Root Schema"
+      definitions: {}
+      required:
+      - "vehicleNum"
+      - "routeNum"
+      - "lat"
+      - "lon"
+      - "status"
+      - "speed"
+      properties:
+        vehicleNum:
+          default: 0
+          examples:
+          - 1091
+          maximum: 1000
+          type: "integer"
+          title: "The Vehiclenum Schema"
+          minimum: 0
+          $id: "#/properties/vehicleNum"
+        lon:
+          default: 0
+          examples:
+          - 103.85372
+          maximum: 180
+          type: "number"
+          title: "The Lon Schema"
+          minimum: -180
+          $id: "#/properties/lon"
+        lat:
+          default: 0
+          examples:
+          - 1.27281
+          maximum: 180
+          type: "number"
+          title: "The Lat Schema"
+          minimum: -180
+          $id: "#/properties/lat"
+        speed:
+          default: 0
+          examples:
+          - 43
+          type: "integer"
+          title: "The Speed Schema"
+          $id: "#/properties/speed"
+        routeNum:
+          default: 0
+          examples:
+          - 5
+          maximum: 2000
+          type: "integer"
+          title: "The Routenum Schema"
+          minimum: 0
+          $id: "#/properties/routeNum"
+        status:
+          default: "OK"
+          examples:
+          - "OK"
+          pattern: "^(.*)$"
+          type: "string"
+          title: "The Status Schema"
+          enum:
+          - "OK"
+          - "STOP"
+          - "FAIL"
+          - "START"
+          - "STOPPED"
+          - "FLAT_TIRE"
+          $id: "#/properties/status"
+      $id: "http://example.com/root.json"
+  messages:
+    BusLocationChange:
+      headers: {}
+      payload:
+        $ref: "#/components/schemas/Bus Geo Location"
+      name: "BusLocationChange"
+      description: "Emitted when a bus changes location or there is a change in status"
+      title: "BusLocationChange"
+channels:
+  geo/bus/{lat}/{location.long}/{location.status}/status:
+    publish:
+      message:
+        $ref: "#/components/messages/BusLocationChange"
+asyncapi: "2.0.0-rc1"
+id: "urn:qho6wzchhf"
+info:
+  description: "Generates Bus Movement and Status Change events"
+  title: "SingaporeBusSimulator"
+  version: "0.9"
+servers:
+  url: localhost:55555
+  protocol: smf
+  description: Test broker
+  baseChannel: 
+  variables:
+    port:
+      description: Secure connection (TLS) is available through port 8883.
+      default: '55555'
+      enum:
+        - '55555'

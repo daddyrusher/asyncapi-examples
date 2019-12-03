@@ -1,0 +1,109 @@
+asyncapi: 2.0.0
+info:
+  title: LoginHistorySubscriber message format
+  version: '1.0'
+  description: |
+    Schema definition of the messages consumed by the LoginHistorySubscriber
+servers:
+  default:
+    url: 'rabbitmq:5672'
+    schema: aqmp
+    description: The RabbitMQ server used in our installation
+component:
+  messages:
+    request:
+      headers:
+        type: object
+        properties:
+          message_type:
+            type: string
+            description: This is a message with a request and a context
+            default: login_history.request
+      payload:
+        type: object
+        properties:
+          request_id:
+            type: string
+            description: The unique id used for this request
+            example: d2cb3cf8-fd1b-408d-aa3d-d9c40e4b734d
+          request_context:
+            type: string
+            description: The context this request is related to. The context_id.
+            example: 26778f009543a0d8f20347e82a3a7b63
+          request_start_time:
+            type: string
+            description: The timestamp the request is initiated
+            example: aaa
+          request_method:
+            type: string
+            description: The request method for the request
+            example: POST
+          request_path:
+            type: string
+            description: The path for the request
+            example: /sign_in
+          request_params:
+            type: string
+            description: The parameters passed to the request as json string
+            example:
+              param1: value1
+              param2: value2
+          request_status:
+            type: string
+            description: the status code responded with from the application
+            example: 404
+          app_id:
+            type: string
+            description: The application name posting the application
+            example: banking
+          source:
+            type: string
+            description: The true source hostname or ip this request comes from.
+            example: myhost
+          host:
+            type: string
+            description: The hostname that runs the application
+            example: myhost123
+    context:
+      headers:
+        type: object
+        properties:
+          message_type:
+            type: string
+            description: >-
+              This is a message that creates a context identified by context_id.
+              A context is only related to an owner but neither to a app nor to
+              a host.
+            default: login_history.context
+      payload:
+        type: object
+        properties:
+          context_id:
+            type: string
+            description: >-
+              The unique id specifying the context. Could be a session id, an
+              api token, .. Connects request and context (see request_context).
+            example: 26778f009543a0d8f20347e82a3a7b63
+          owner_id:
+            type: string
+            description: >-
+              The owner id that has created the context. Most often this will be
+              the user.
+            example: 42235314-27aa-4b50-9793-2a7b6acfde52
+          context_status:
+            type: string
+            description: >-
+              descriptive status of the context. Could be active, enabled,
+              disabled, ..
+            default: active
+          context_type:
+            type: string
+            description: >-
+              descriptive type of the context. This could be for example
+              api-token, session, ..
+            default: session
+channels:
+  fos/login_history:
+    oneOf:
+      - $ref: '#/component/messages/request'
+      - $ref: '#/component/messages/context'
